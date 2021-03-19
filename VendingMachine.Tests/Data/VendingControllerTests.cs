@@ -95,9 +95,39 @@ namespace VendingMachine.Data.Tests
             //assert
             Assert.Equal(insertResult, expectedResult);
             Assert.Equal(expectedAmount, vm.Payment);
-
         }
 
+        [Fact]
+        public void InsertMoneySeveralTimesTest()
+        {
+            //arrange
+            var vm = new VendingController(false);
+            var expInitialMoney = 0;
+            var expFirstBuyRemains = 20;
+            var expSecondBuyRemains = 20;
+            var expThirdBuyRemains = 20;
+
+            //act
+            var actInitialMoney = vm.Payment;
+
+            bool insertResult1 = vm.InsertMoney(20);
+            var actFirstInsertRemainders = vm.Payment;
+
+            bool insertResult2 = vm.InsertMoney(-50); //negative value, not in denominations
+            var actSecondInsertRemainders = vm.Payment;
+
+            bool insertResult3 = vm.InsertMoney(133); //not in denominations
+            var actThirdInsertRemainders = vm.Payment;
+
+            //assert
+            Assert.Equal(expInitialMoney, actInitialMoney);
+            Assert.Equal(expFirstBuyRemains, actFirstInsertRemainders);
+            Assert.Equal(expSecondBuyRemains, actSecondInsertRemainders);
+            Assert.Equal(expThirdBuyRemains, actThirdInsertRemainders);
+            Assert.True(insertResult1);
+            Assert.False(insertResult2);
+            Assert.False(insertResult3);
+        }
 
 
         [Theory]
@@ -113,10 +143,42 @@ namespace VendingMachine.Data.Tests
 
             //Act
             string actualReturnString = vm.Purchase(choice);
+
             //Assert
             Assert.Contains(expectedResult, actualReturnString);
         }
 
+
+        [Fact]
+        public void MultiplePurchasesTest()
+        {
+            //Arrange
+            var vm = new VendingController(true);
+            var expInitialMoney = 0;
+            var expInsertMoney1 = 10;
+            var expInsertMoney2 = 10;
+
+            //Act
+            var actInitialMoney = vm.Payment;
+            vm.InsertMoney(10);
+            var actInsertMoney1 = vm.Payment;
+            vm.InsertMoney(-1); //should not be accepted since it is not in denominations
+            var actInsertMoney2 = vm.Payment;  //money should remain the same
+
+            string returnString = vm.Purchase(1); //purchase item 1 with price 15 (more money needed)
+            var actPurchase1Remainder = vm.Payment;
+            string returnString2 = vm.Purchase(7); //purchase item 7 with price 10 
+            var actPurchase2Remainder = vm.Payment;
+
+            //Assert
+            Assert.Equal(expInitialMoney, actInitialMoney);
+            Assert.Equal(expInsertMoney1, actInsertMoney1);
+            Assert.Equal(expInsertMoney2, actInsertMoney2);
+            Assert.Contains("More money needed", returnString);
+            Assert.Equal(expInsertMoney2, actPurchase1Remainder);
+            Assert.Contains("Water", returnString2);
+            Assert.Equal(0, actPurchase2Remainder);
+        }
 
 
         [Theory]

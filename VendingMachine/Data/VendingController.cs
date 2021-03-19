@@ -40,7 +40,7 @@ namespace VendingMachine.Data
                 {
                     _paymentSum = value;
                 }
-                else //wont set it to minus
+                else //wont set it to minus, but this is already prevented from happening in the calling methods
                 {
                     _paymentSum = 0;
                 }
